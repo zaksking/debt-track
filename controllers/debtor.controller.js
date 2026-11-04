@@ -55,6 +55,32 @@ exports.getDebtorById = (request,response) => {
     })
 }
 
+exports.getDebtorByuserID = (request, response) => {
+    let user_id = request.params.id 
+    Debtor.findOne({where:{user_id}})
+    .then(result => {
+        if(result) {
+            return response.json({
+                success: true,
+                data: result,
+                message: "Data not found"
+            })
+        }else {
+            return response.json({
+                success: false,
+                message: "Data not found"
+            })
+        }
+    })
+    .catch(error => {
+        return response.json({
+            success: false,
+            message: error.message
+        })
+    })
+}
+
+
 exports.newDebtor = async(request,response) => {
     if (!request.body.name) {
         return response.json({
