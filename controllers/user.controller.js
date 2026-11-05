@@ -1,19 +1,18 @@
 const {User} = require('../models')
+const md5 = require('md5')
 
 exports.newUser = (request,response) => {
     let newUser = {
         username: request.body.username,
         email: request.body.email,
-        password_hash: request.body.password,
+        password_hash: md5(request.body.password),
         full_name: request.body.full_name
     }
     User.create(newUser)
     .then(result => {
-        let dataUser = result.toJSON()
-        delete dataUser.password_hash
         return response.json({
             success: true,
-            data: dataUser,
+            data: result,
             message: 'New user has been inserted'
         })
     })
@@ -26,7 +25,7 @@ exports.newUser = (request,response) => {
 }
 
 exports.getAllUser = async(request, response) => {
-    User.findAll({attributes: {exclude: ['password_hash']}})
+    User.findAll()
     .then(result => {
         return response.json({
             success: true,
