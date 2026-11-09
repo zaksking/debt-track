@@ -10,10 +10,12 @@ app.use(express.json())
 const userRoute = require('./routes/user.route')
 const debtRoute = require('./routes/debt.route')
 const debtorRoute = require('./routes/debtor.route')
+const transactionRoute = require('./routes/transaction.route')
 
 app.use('/users', userRoute)
 app.use('/debts', debtRoute)
 app.use('/debtors', debtorRoute)
+app.use('/transaction',transactionRoute)
 
 const PORT = 8000
 
