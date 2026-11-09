@@ -55,20 +55,20 @@ exports.getDebtorById = (request,response) => {
     })
 }
 
-exports.getDebtorByuserID = (request, response) => {
+exports.getDebtorByUserId = (request, response) => {
     let user_id = request.params.id 
-    Debtor.findOne({where:{user_id}})
+    Debtor.findAll({where:{user_id}})
     .then(result => {
         if(result) {
             return response.json({
                 success: true,
                 data: result,
-                message: "Data not found"
+                message: "Debtor found"
             })
         }else {
             return response.json({
                 success: false,
-                message: "Data not found"
+                message: "Debtor not found"
             })
         }
     })

@@ -17,6 +17,13 @@ app.use('/debts', debtRoute)
 app.use('/debtors', debtorRoute)
 app.use('/transaction',transactionRoute)
 
+app.use((request, response) => {
+    return response.status(404).json({
+        success: false,
+        message: 'route not found'
+    })
+})
+
 const PORT = 8000
 
 app.listen(PORT, () => {

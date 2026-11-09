@@ -4,6 +4,7 @@ const router = express.Router()
 
 router.post('/', debtController.addNewDebt)
 router.get('/', debtController.getAllDebts)
+router.get('/:id', debtController.getDebtById)
 router.put('/:id', debtController.updateDebts)
 router.delete('/:id',debtController.deleteDebt)
 

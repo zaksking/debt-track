@@ -9,6 +9,6 @@ router.post('/', debtorController.newDebtor)
 router.put('/:id', debtorController.updateDebtor)
 router.delete('/:id', debtorController.deleteDebtor)
 router.get('/:id', debtorController.getDebtorById)
-router.get('/user/:id', debtorController.getDebtorByuserID)
+router.get('/user/:id', debtorController.getDebtorByUserId)
 
 module.exports = router

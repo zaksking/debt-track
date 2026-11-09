@@ -1,4 +1,4 @@
-const { Debt, Transaction } = require('../models')
+const { sequelize, Debt, Transaction } = require('../models')
 
 exports.newTransaction = async (request, response) => {
     try {
@@ -30,17 +30,21 @@ exports.newTransaction = async (request, response) => {
 
         const newRemaining = remaining - amount
 
-        const transaction = await Transaction.create({
-            debt_id: debt.id,
-            user_id: debt.user_id,
-            type: 'payment',
-            amount: amount,
-            notes: request.body.notes
-        })
+        const transaction = await sequelize.transaction(async (t) => {
+            const baru = await Transaction.create({
+                debt_id: debt.id,
+                user_id: debt.user_id,
+                type: 'payment',
+                amount: amount,
+                notes: request.body.notes
+            }, { transaction: t })
 
-        await debt.update({
-            remaining_amount: newRemaining,
-            status: newRemaining === 0 ? 'paid' : 'partial'
+            await debt.update({
+                remaining_amount: newRemaining,
+                status: newRemaining === 0 ? 'paid' : 'partial'
+            }, { transaction: t })
+
+            return baru
         })
 
         return response.json({

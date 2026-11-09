@@ -1,4 +1,4 @@
-const {Debt, Debtor}  = require('../models')
+const {Debt, Debtor, User}  = require('../models')
 // merapikan nama: '  budi   SANTOSO ' -> 'Budi Santoso'
 function rapikanNama(name) {
     return name
@@ -60,6 +60,36 @@ exports.addNewDebt = async(request,response) => {
         })
     }
 
+    try {
+        let debtor = await Debtor.findByPk(debtorId)
+        if (!debtor) {
+            return response.json({
+                success: false,
+                message: 'debtor not found'
+            })
+        }
+
+        let user = await User.findByPk(request.body.user_id)
+        if (!user) {
+            return response.json({
+                success: false,
+                message: 'user not found'
+            })
+        }
+
+        if (Number(request.body.user_id) !== debtor.user_id) {
+            return response.json({
+                success: false,
+                message: 'debtor ini bukan milik user_id tersebut'
+            })
+        }
+    } catch (error) {
+        return response.json({
+            success: false,
+            message: error.message
+        })
+    }
+
     let newDebt = {
     debtor_id: debtorId,
     user_id: request.body.user_id,
@@ -105,8 +135,6 @@ exports.getAllDebts = async (request,response) => {
 
 exports.updateDebts = async (request,response) => {
     let debtData = {
-    debtor_id: request.body.debtor_id,
-    user_id: request.body.user_id,
     title: request.body.title,
     initial_amount: request.body.initial_amount,
     description: request.body.description,
@@ -149,6 +177,30 @@ exports.deleteDebt = async(request, response) => {
             success: true,
             message: 'debt has deleted'
         })
+    })
+    .catch(error => {
+        return response.json({
+            success: false,
+            message: error.message
+        })
+    })
+}
+exports.getDebtById = (request,response) => {
+    let debt_id = request.params.id
+    Debt.findOne({where: {id: debt_id}})
+    .then(result => {
+        if (result) {
+            return response.json({
+                success: true,
+                data: result,
+                message: 'debt found'
+            })
+        } else {
+            return response.json({
+                success: false,
+                message: 'debt not found'
+            })
+        }
     })
     .catch(error => {
         return response.json({
