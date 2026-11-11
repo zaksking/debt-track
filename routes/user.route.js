@@ -7,6 +7,7 @@ const userController = require('../controllers/user.controller')
 router.get("/", userController.getAllUser)
 router.post("/", userController.newUser)
 router.put('/:id', userController.updateUser)
+router.put('/reset/:id', userController.ResetPassword)
 router.delete('/:id', userController.deleteUser)
 router.get('/:id', userController.getUserById)
 

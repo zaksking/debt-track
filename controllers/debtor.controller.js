@@ -59,7 +59,7 @@ exports.getDebtorByUserId = (request, response) => {
     let user_id = request.params.id 
     Debtor.findAll({where:{user_id}})
     .then(result => {
-        if(result) {
+        if(result.length > 0) {
             return response.json({
                 success: true,
                 data: result,

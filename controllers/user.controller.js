@@ -94,6 +94,37 @@ exports.updateUser = async(request, response) => {
     })
 }
 
+exports.ResetPassword = async(request, response) => {
+    let email = request.body.email
+    let newPassword = request.body.password
+
+    if(!email || !newPassword) {
+        return response.status(400).json ({
+            success: false,
+            message: "Email and new password are required"
+        })
+    } 
+    User.update({password: md5(newPassword)},{where:{email: email}})
+    .then(result => {
+        if(result[0] === 0) {
+            return response.json({
+                success: false,
+                message: "User not found"
+            })
+        }
+        return response.json({
+            success: true,
+            message: "Password has been reset"
+        })
+    })
+    .catch(error => {
+        return response.json({
+            success: false,
+            messagee: error.message
+        })
+    })
+}
+
 exports.deleteUser = async(request, response) => {
     let user_id = request.params.id
     User.destroy({where:{id:user_id}})

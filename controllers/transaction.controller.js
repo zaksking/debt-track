@@ -81,8 +81,8 @@ exports.getAllTransaction = async(request, response) => {
 }
 
 exports.getTransactionById = async(request, response) => {
-    transaction_id = request.params.id
-    Transaction.findOne({where:{id:{transaction_id}}})
+    let transaction_id = request.params.id
+    Transaction.findOne({where:{id:transaction_id}})
     .then(result => {
         if (result) {
             return response.json({
