@@ -2,8 +2,12 @@ const { sequelize, Debt, Transaction } = require('../models')
 
 exports.newTransaction = async (request, response) => {
     try {
-        const debt = await Debt.findByPk(request.body.debt_id)
-
+        const debt = await Debt.findOne({
+            where: {
+                id: request.body.debt_id,
+                user_id: request.user.user_id
+            }
+        })
         if (!debt) {
             return response.status(404).json({
                 success: false,
@@ -33,7 +37,7 @@ exports.newTransaction = async (request, response) => {
         const transaction = await sequelize.transaction(async (t) => {
             const baru = await Transaction.create({
                 debt_id: debt.id,
-                user_id: debt.user_id,
+                user_id: request.user.user_id,
                 type: 'payment',
                 amount: amount,
                 notes: request.body.notes
@@ -64,7 +68,7 @@ exports.newTransaction = async (request, response) => {
 }
 
 exports.getAllTransaction = async(request, response) => {
-    Transaction.findAll()
+    Transaction.findAll({ where: { user_id: request.user.user_id } })
     .then(result => {
         return response.json({
             success: true,
@@ -82,7 +86,9 @@ exports.getAllTransaction = async(request, response) => {
 
 exports.getTransactionById = async(request, response) => {
     let transaction_id = request.params.id
-    Transaction.findOne({where:{id:transaction_id}})
+    Transaction.findOne({
+        where: { id: transaction_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if (result) {
             return response.json({
@@ -107,7 +113,9 @@ exports.getTransactionById = async(request, response) => {
 
 exports.deleteTransaction = async(request, response) => {
     let transaction_id = request.params.id
-    Transaction.destroy({where:{id:transaction_id}})
+    Transaction.destroy({
+        where: { id: transaction_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if(result === 0) {
             return response.json({

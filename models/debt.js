@@ -5,9 +5,9 @@ const { Model } = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
   class Debt extends Model {
     static associate(models) {
-      Debt.belongsTo(models.Debtor, { foreignKey: 'debtor_id' });
-      Debt.belongsTo(models.User, { foreignKey: 'user_id' });
-      Debt.hasMany(models.Transaction, { foreignKey: 'debt_id' });
+      Debt.belongsTo(models.Debtor, { foreignKey: 'debtor_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+      Debt.belongsTo(models.User, { foreignKey: 'user_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+      Debt.hasMany(models.Transaction, { foreignKey: 'debt_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
     }
   }
 

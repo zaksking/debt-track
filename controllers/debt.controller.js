@@ -1,4 +1,4 @@
-const {Debt, Debtor, User}  = require('../models')
+const {Debt, Debtor}  = require('../models')
 // merapikan nama: '  budi   SANTOSO ' -> 'Budi Santoso'
 function rapikanNama(name) {
     return name
@@ -11,12 +11,12 @@ function rapikanNama(name) {
 exports.addNewDebt = async(request,response) => {
     let debtorId = request.body.debtor_id
 
-    if (!debtorId && request.body.debtor_name) {
+    if (!debtorId && request.body.peminjam) {
         try {
             let [debtor] = await Debtor.findOrCreate({
                 where: {
-                    name: rapikanNama(request.body.debtor_name),
-                    user_id: request.body.user_id
+                    name: rapikanNama(request.body.peminjam),
+                    user_id: request.user.user_id
                 },
                 defaults: {
                     phone: request.body.debtor_phone,
@@ -61,26 +61,16 @@ exports.addNewDebt = async(request,response) => {
     }
 
     try {
-        let debtor = await Debtor.findByPk(debtorId)
+        let debtor = await Debtor.findOne({
+            where: {
+                id: debtorId,
+                user_id: request.user.user_id
+            }
+        })
         if (!debtor) {
-            return response.json({
+            return response.status(404).json({
                 success: false,
-                message: 'debtor not found'
-            })
-        }
-
-        let user = await User.findByPk(request.body.user_id)
-        if (!user) {
-            return response.json({
-                success: false,
-                message: 'user not found'
-            })
-        }
-
-        if (Number(request.body.user_id) !== debtor.user_id) {
-            return response.json({
-                success: false,
-                message: 'debtor ini bukan milik user_id tersebut'
+                message: 'Debtor tidak ditemukan atau bukan milik user yang login'
             })
         }
     } catch (error) {
@@ -92,12 +82,12 @@ exports.addNewDebt = async(request,response) => {
 
     let newDebt = {
     debtor_id: debtorId,
-    user_id: request.body.user_id,
-    title: request.body.title,
-    initial_amount: request.body.initial_amount,
-    remaining_amount: request.body.initial_amount,
-    description: request.body.description,
-    due_date: request.body.due_date,
+    user_id: request.user.user_id,
+    title: request.body.judul,
+    initial_amount: request.body.jumlah,
+    remaining_amount: request.body.jumlah,
+    description: request.body.deskripsi,
+    due_date: request.body.tenggat,
     status: request.body.status
 }
     Debt.create(newDebt)
@@ -116,21 +106,23 @@ exports.addNewDebt = async(request,response) => {
     })
 }
 
-exports.getAllDebts = async (request,response) => {
-    Debt.findAll()
-    .then(result => {
+exports.getAllDebts = async (request, response) => {
+    try {
+        const result = await Debt.findAll({
+            where: { user_id: request.user.user_id }
+        })
+
         return response.json({
             success: true,
             data: result,
-            message: 'All debts has loaded'
+            message: result.length > 0 ? 'All debts has loaded' : 'You have no data'
         })
-    })
-    .catch(error => {
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }
 
 exports.updateDebts = async (request,response) => {
@@ -142,7 +134,9 @@ exports.updateDebts = async (request,response) => {
     status: request.body.status
     }
     let debt_id = request.params.id
-    Debt.update(debtData, {where: {id: debt_id}})
+    Debt.update(debtData, {
+        where: { id: debt_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if (result[0] === 0) {
             return response.json({
@@ -165,7 +159,9 @@ exports.updateDebts = async (request,response) => {
 
 exports.deleteDebt = async(request, response) => {
     let debt_id = request.params.id
-    Debt.destroy({where: {id: debt_id}})
+    Debt.destroy({
+        where: { id: debt_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if (result === 0) {
             return response.json({
@@ -185,10 +181,12 @@ exports.deleteDebt = async(request, response) => {
         })
     })
 }
-exports.getDebtById = (request,response) => {
-    let debt_id = request.params.id
-    Debt.findOne({where: {id: debt_id}})
-    .then(result => {
+exports.getDebtById = async (request, response) => {
+    try {
+        const result = await Debt.findOne({
+            where: { id: request.params.id, user_id: request.user.user_id }
+        })
+
         if (result) {
             return response.json({
                 success: true,
@@ -201,11 +199,10 @@ exports.getDebtById = (request,response) => {
                 message: 'debt not found'
             })
         }
-    })
-    .catch(error => {
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }

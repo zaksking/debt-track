@@ -1,4 +1,4 @@
-const {Debtor, User} = require('../models')
+const {Debtor} = require('../models')
 
 // merapikan nama: '  budi   SANTOSO ' -> 'Budi Santoso'
 function rapikanNama(name) {
@@ -9,31 +9,31 @@ function rapikanNama(name) {
         .replace(/(^| )\S/g, (huruf) => huruf.toUpperCase())
 }
 
-exports.getAllDebtors = (request,response) => {
-    let filter = {}
-    if (request.query.user_id) {
-        filter.user_id = request.query.user_id
-    }
-    Debtor.findAll({where: filter})
-    .then(result => {
+exports.getAllDebtors = async (request, response) => {
+    try {
+        const result = await Debtor.findAll({
+            where: { user_id: request.user.user_id }
+        })
+
         return response.json({
             success: true,
             data: result,
-            message: 'All debtor has loaded'
+            message: result.length > 0 ? 'All data has loaded' : 'You have no data'
         })
-    })
-    .catch(error => {
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }
 
-exports.getDebtorById = (request,response) => {
-    let debtor_id = request.params.id
-    Debtor.findOne({where: {id: debtor_id}})
-    .then(result => {
+exports.getDebtorById = async (request, response) => {
+    try {
+        const result = await Debtor.findOne({
+            where: { id: request.params.id, user_id: request.user.user_id }
+        })
+
         if (result) {
             return response.json({
                 success: true,
@@ -46,38 +46,31 @@ exports.getDebtorById = (request,response) => {
                 message: 'debtor not found'
             })
         }
-    })
-    .catch(error => {
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }
 
-exports.getDebtorByUserId = (request, response) => {
-    let user_id = request.params.id 
-    Debtor.findAll({where:{user_id}})
-    .then(result => {
-        if(result.length > 0) {
-            return response.json({
-                success: true,
-                data: result,
-                message: "Debtor found"
-            })
-        }else {
-            return response.json({
-                success: false,
-                message: "Debtor not found"
-            })
-        }
-    })
-    .catch(error => {
+exports.getDebtorByUserId = async (request, response) => {
+    try {
+        const result = await Debtor.findAll({
+            where: { user_id: request.user.user_id }
+        })
+
+        return response.json({
+            success: true,
+            data: result,
+            message: result.length > 0 ? 'Debtor found' : 'Debtor not found'
+        })
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }
 
 
@@ -89,30 +82,8 @@ exports.newDebtor = async(request,response) => {
         })
     }
 
-    if (!request.body.user_id) {
-        return response.json({
-            success: false,
-            message: 'user_id wajib diisi'
-        })
-    }
-
-    try {
-        let user = await User.findByPk(request.body.user_id)
-        if (!user) {
-            return response.json({
-                success: false,
-                message: 'user not found'
-            })
-        }
-    } catch (error) {
-        return response.json({
-            success: false,
-            message: error.message
-        })
-    }
-
     let newDebtor = {
-        user_id: request.body.user_id,
+        user_id: request.user.user_id,
         name: rapikanNama(request.body.name),
         phone: request.body.phone,
         email: request.body.email,
@@ -137,7 +108,6 @@ exports.newDebtor = async(request,response) => {
 
 exports.updateDebtor = (request,response) => {
     let dataDebtor = {
-        user_id: request.body.user_id,
         name: request.body.name ? rapikanNama(request.body.name) : undefined,
         phone: request.body.phone,
         email: request.body.email,
@@ -145,7 +115,9 @@ exports.updateDebtor = (request,response) => {
         notes: request.body.notes
     }
     let debtor_id = request.params.id
-    Debtor.update(dataDebtor, {where: {id: debtor_id}})
+    Debtor.update(dataDebtor, {
+        where: { id: debtor_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if (result[0] === 0) {
             return response.json({
@@ -168,7 +140,9 @@ exports.updateDebtor = (request,response) => {
 
 exports.deleteDebtor = (request,response) => {
     let debtor_id = request.params.id
-    Debtor.destroy({where: {id: debtor_id}})
+    Debtor.destroy({
+        where: { id: debtor_id, user_id: request.user.user_id }
+    })
     .then(result => {
         if (result === 0) {
             return response.json({

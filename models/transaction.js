@@ -5,8 +5,8 @@ const { Model } = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
   class Transaction extends Model {
     static associate(models) {
-      Transaction.belongsTo(models.Debt, { foreignKey: 'debt_id' });
-      Transaction.belongsTo(models.User, { foreignKey: 'user_id' });
+      Transaction.belongsTo(models.Debt, { foreignKey: 'debt_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+      Transaction.belongsTo(models.User, { foreignKey: 'user_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
     }
   }
 
@@ -30,4 +30,3 @@ module.exports = function (sequelize, DataTypes) {
 
   return Transaction;
 };
-
