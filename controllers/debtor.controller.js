@@ -9,11 +9,13 @@ function rapikanNama(name) {
         .replace(/(^| )\S/g, (huruf) => huruf.toUpperCase())
 }
 
+function getOwnerFilter(request) {
+    return request.user.role === 'admin' ? {} : { user_id: request.user.user_id }
+}
+
 exports.getAllDebtors = async (request, response) => {
     try {
-        const result = await Debtor.findAll({
-            where: { user_id: request.user.user_id }
-        })
+        const result = await Debtor.findAll({ where: getOwnerFilter(request) })
 
         return response.json({
             success: true,
@@ -31,7 +33,7 @@ exports.getAllDebtors = async (request, response) => {
 exports.getDebtorById = async (request, response) => {
     try {
         const result = await Debtor.findOne({
-            where: { id: request.params.id, user_id: request.user.user_id }
+            where: { id: request.params.id, ...getOwnerFilter(request) }
         })
 
         if (result) {
@@ -56,9 +58,10 @@ exports.getDebtorById = async (request, response) => {
 
 exports.getDebtorByUserId = async (request, response) => {
     try {
-        const result = await Debtor.findAll({
-            where: { user_id: request.user.user_id }
-        })
+        const userId = request.user.role === 'admin'
+            ? request.params.id
+            : request.user.user_id
+        const result = await Debtor.findAll({ where: { user_id: userId } })
 
         return response.json({
             success: true,
@@ -116,7 +119,7 @@ exports.updateDebtor = (request,response) => {
     }
     let debtor_id = request.params.id
     Debtor.update(dataDebtor, {
-        where: { id: debtor_id, user_id: request.user.user_id }
+        where: { id: debtor_id, ...getOwnerFilter(request) }
     })
     .then(result => {
         if (result[0] === 0) {
@@ -141,7 +144,7 @@ exports.updateDebtor = (request,response) => {
 exports.deleteDebtor = (request,response) => {
     let debtor_id = request.params.id
     Debtor.destroy({
-        where: { id: debtor_id, user_id: request.user.user_id }
+        where: { id: debtor_id, ...getOwnerFilter(request) }
     })
     .then(result => {
         if (result === 0) {

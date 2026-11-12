@@ -8,6 +8,10 @@ function rapikanNama(name) {
         .replace(/(^| )\S/g, (huruf) => huruf.toUpperCase())
 }
 
+function getOwnerFilter(request) {
+    return request.user.role === 'admin' ? {} : { user_id: request.user.user_id }
+}
+
 exports.addNewDebt = async(request,response) => {
     let debtorId = request.body.debtor_id
 
@@ -109,7 +113,7 @@ exports.addNewDebt = async(request,response) => {
 exports.getAllDebts = async (request, response) => {
     try {
         const result = await Debt.findAll({
-            where: { user_id: request.user.user_id }
+            where: getOwnerFilter(request)
         })
 
         return response.json({
@@ -135,7 +139,7 @@ exports.updateDebts = async (request,response) => {
     }
     let debt_id = request.params.id
     Debt.update(debtData, {
-        where: { id: debt_id, user_id: request.user.user_id }
+        where: { id: debt_id, ...getOwnerFilter(request) }
     })
     .then(result => {
         if (result[0] === 0) {
@@ -160,7 +164,7 @@ exports.updateDebts = async (request,response) => {
 exports.deleteDebt = async(request, response) => {
     let debt_id = request.params.id
     Debt.destroy({
-        where: { id: debt_id, user_id: request.user.user_id }
+        where: { id: debt_id, ...getOwnerFilter(request) }
     })
     .then(result => {
         if (result === 0) {
@@ -184,7 +188,7 @@ exports.deleteDebt = async(request, response) => {
 exports.getDebtById = async (request, response) => {
     try {
         const result = await Debt.findOne({
-            where: { id: request.params.id, user_id: request.user.user_id }
+            where: { id: request.params.id, ...getOwnerFilter(request) }
         })
 
         if (result) {

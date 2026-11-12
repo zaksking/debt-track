@@ -1,3 +1,4 @@
+
 'use strict';
 
 const { Model } = require('sequelize');
@@ -15,7 +16,12 @@ module.exports = function (sequelize, DataTypes) {
     username: DataTypes.STRING,
     email: DataTypes.STRING,
     password_hash: DataTypes.STRING,
-    full_name: DataTypes.STRING
+    full_name: DataTypes.STRING,
+    role: {
+      type: DataTypes.ENUM('user', 'admin'),
+      allowNull: false,
+      defaultValue: 'user'
+    }
   }, {
     sequelize: sequelize,
     modelName: 'User',

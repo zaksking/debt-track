@@ -2,18 +2,30 @@ const {User} = require('../models')
 const md5 = require('md5')
 
 exports.newUser = (request,response) => {
+    
+    const role = request.body.role || 'user'
+    if(!['user','admin'].includes(role)) {
+        return response.status(400).json({
+            success: false,
+            message: "Role hanya boleh user atau admin"
+        })
+    }
     let newUser = {
         username: request.body.username,
         email: request.body.email,
         password_hash: md5(request.body.password),
-        full_name: request.body.full_name
+        full_name: request.body.full_name,
+        role: role
     }
     User.create(newUser)
     .then(result => {
+        const userData = result.toJSON()
+        delete userData.password_hash
+
         return response.json({
             success: true,
-            data: result,
-            message: 'New user has been inserted'
+            data: userData,
+            message: "User has created"
         })
     })
     .catch(error => {
@@ -67,31 +79,54 @@ exports.getUserById = async(request,response) => {
 }
 
 exports.updateUser = async(request, response) => {
-    let dataUser = {
-        username: request.body.username,
-        email: request.body.email,
-        full_name: request.body.full_name
+    const dataUser = {}
+
+    if (request.body.username !== undefined) {
+        dataUser.username = request.body.username
     }
-    let user_id = request.params.id
-    User.update(dataUser, {where:{id:user_id}})
-    .then(result => {
-        if (result[0] === 0) {
+    if (request.body.email !== undefined) {
+        dataUser.email = request.body.email
+    }
+    if (request.body.full_name !== undefined) {
+        dataUser.full_name = request.body.full_name
+    }
+    if (request.body.role !== undefined) {
+        if (!['user', 'admin'].includes(request.body.role)) {
+            return response.status(400).json({
+                success: false,
+                message: 'Role hanya boleh user atau admin'
+            })
+        }
+        dataUser.role = request.body.role
+    }
+
+    if (Object.keys(dataUser).length === 0) {
+        return response.status(400).json({
+            success: false,
+            message: 'Tidak ada data yang dikirim untuk diperbarui'
+        })
+    }
+
+    try {
+        const user = await User.findByPk(request.params.id)
+        if (!user) {
             return response.json({
                 success: false,
                 message: 'user not found'
             })
         }
+
+        await user.update(dataUser)
         return response.json({
             success: true,
             message: 'Data has updated'
         })
-    })
-    .catch(error => {
+    } catch (error) {
         return response.json({
             success: false,
             message: error.message
         })
-    })
+    }
 }
 
 exports.ResetPassword = async(request, response) => {

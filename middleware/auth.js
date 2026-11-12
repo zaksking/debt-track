@@ -25,7 +25,8 @@ exports.getToken = async (request, response) => {
 
         const payload = {
             user_id: user.id,
-            email: user.email
+            email: user.email,
+            role: user.role
         }
         const token = jwt.sign(payload, secretKey, {
             expiresIn: '1d'
@@ -74,4 +75,15 @@ exports.authorize = (request, response, next) => {
             message: 'Token tidak valid atau sudah kedaluwarsa'
         })
     }
+}
+
+exports.isAdmin = (request, response, next) => {
+    if (!request.user || request.user.role !== 'admin') {
+        return response.status(403).json({
+            success: false,
+            message: 'Akses hanya untuk admin'
+        })
+    }
+
+    return next()
 }
