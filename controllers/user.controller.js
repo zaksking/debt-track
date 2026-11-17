@@ -53,6 +53,24 @@ exports.getAllUser = async(request, response) => {
     })
 }
 
+exports.showDataUser = async(request, response) => {
+    const result = await User.findOne({where: request.user.user_id})
+    if(!result) {
+        return response.json({
+            success: false
+        })
+    }
+    return response.json({
+        data:result
+    })
+    .catch(error => {
+        return response.json({
+            success: false,
+            message: error.message
+        })
+    })
+}
+
 exports.getUserById = async(request,response) => {
     let user_id = request.params.id
     User.findOne({where: {id: user_id}, attributes: {exclude: ['password_hash']}})
